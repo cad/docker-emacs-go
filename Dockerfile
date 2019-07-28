@@ -8,12 +8,12 @@ RUN echo 'export PATH="$PATH:/go/bin"' >> /etc/profile
 
 # install go depencencies
 ENV GO111MODULE on
-RUN go get -u golang.org/x/tools/cmd/gopls@latest
+RUN go get golang.org/x/tools/cmd/gopls@latest
 RUN go get golang.org/x/tools/cmd/goimports@latest
-RUN go get -u golang.org/x/tools/cmd/guru@latest
+RUN go get golang.org/x/tools/cmd/guru@latest
 
 COPY emacs.el /root/.emacs
-RUN emacs --batch -l /root/.emacs
+#RUN emacs --batch -l /root/.emacs
 
 VOLUME /workspace
 

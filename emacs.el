@@ -1,84 +1,87 @@
 (setenv "GOPATH" "/go")
 
-
+;enable melpa if it isn't enabled
 (require 'package)
-(setq package-enable-at-startup nil)
-
-;; https://emacs.stackexchange.com/a/2989
-(setq package-archives
-      '(("elpa"     . "https://elpa.gnu.org/packages/")
-        ("melpa-stable" . "https://stable.melpa.org/packages/")
-        ("melpa"        . "https://melpa.org/packages/"))
-      package-archive-priorities
-      '(("melpa-stable" . 10)
-        ("elpa"     . 5)
-        ("melpa"        . 0)))
-
+(setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3") 
+(when (not (assoc "melpa" package-archives))
+  (setq package-archives (append '(("melpa" . "https://melpa.org/packages/")) package-archives)))
 (package-initialize)
 
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
+;; refresh package list if it is not already available
+(when (not package-archive-contents) (package-refresh-contents))
+
+;; install use-package if it isn't already installed
+(when (not (package-installed-p 'use-package))
   (package-install 'use-package))
-(require 'use-package)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Install and configure pacakges
 
-(unless (package-installed-p 'go-mode)
-  (package-refresh-contents)
-  (package-install 'go-mode))
-(require 'go-mode)
+;; optional, provides snippets for method signature completion
+(use-package yasnippet
+  :ensure t)
 
-(unless (package-installed-p 'go-guru)
-  (package-refresh-contents)
-  (package-install 'go-guru))
-(require 'go-guru)
-
-(unless (package-installed-p 'lsp-mode)
-  (package-refresh-contents)
-  (package-install 'lsp-mode))
-(require 'lsp-mode)
-
-(unless (package-installed-p 'lsp-ui)
-  (package-refresh-contents)
-  (package-install 'lsp-ui))
-(require 'lsp-ui)
-
-(unless (package-installed-p 'company-lsp)
-  (package-refresh-contents)
-  (package-install 'company-lsp))
-(require 'company-lsp)
-
-
-(require 'package)
-(add-to-list 'package-archives
-             '("MELPA Stable" . "http://stable.melpa.org/packages/") t)
-(package-initialize)
-(package-refresh-contents)
-
-
-;(let ((govet (flycheck-checker-get 'go-vet 'command)))
-;  (when (equal (cadr govet) "tool")
-;    (setf (cdr govet) (cddr govet))))
-
-(eval-when-compile (require 'use-package))
-(setq use-package-always-ensure t)
-(use-package diminish)
-
-; ;; golang language server
 (use-package lsp-mode
-  :commands lsp)
+  :ensure t
+  ;; uncomment to enable gopls http debug server
+  ;; :custom (lsp-gopls-server-args '("-debug" "127.0.0.1:0"))
+  :commands (lsp lsp-deferred))
 
+;; optional - provides fancy overlay information
 (use-package lsp-ui
-  :commands lsp-ui-mode)
+  :ensure t
+  :commands lsp-ui-mode
+  :config (progn
+            ;; disable inline documentation
+            (setq lsp-ui-sideline-enable nil)
+            ;; disable showing docs on hover at the top of the window
+            (setq lsp-ui-doc-enable nil))
+  )
 
+(use-package company
+  :ensure t
+  :config (progn
+            ;; don't add any dely before trying to complete thing being typed
+            ;; the call/response to gopls is asynchronous so this should have little
+            ;; to no affect on edit latency
+            (setq company-idle-delay 0)
+            ;; start completing after a single character instead of 3
+            (setq company-minimum-prefix-length 1)
+            ;; align fields in completions
+            (setq company-tooltip-align-annotations t)
+            )
+  )
+
+;; optional package to get the error squiggles as you edit
+(use-package flycheck
+  :ensure t)
+
+;; if you use company-mode for completion (otherwise, complete-at-point works out of the box):
 (use-package company-lsp
+  :ensure t
   :commands company-lsp)
 
-  (with-eval-after-load 'company
-    (push 'company-lsp company-backends))
-  (with-eval-after-load 'lsp-mode
-    (lsp-register-client
-     (make-lsp--client :new-connection (lsp-stdio-connection "gopls")
-                       :major-modes '(go-mode)
-                       :server-id 'gopls))
-    (setf lsp-ui-sideline-enable nil))
+(use-package go-mode
+  :ensure t
+  :bind (
+         ;; If you want to switch existing go-mode bindings to use lsp-mode/gopls instead
+         ;; uncomment the following lines
+         ;; ("C-c C-j" . lsp-find-definition)
+         ;; ("C-c C-d" . lsp-describe-thing-at-point)
+         )
+  :hook ((go-mode . gopls-config/set-library-path)
+         (go-mode . lsp-deferred)
+         (before-save . lsp-organize-imports)))
 
-(add-hook 'go-mode-hook #'lsp)
+(defun gopls-config/set-library-path ()
+  "Set lsp library directory for go modules"
+  (setq lsp-clients-go-library-directories
+        (list
+         ;; /usr is the default value
+         "/workspace/Workspace"
+         ;; add $GOPATH/pkg/mod to the "library path"
+         ;; this causes lsp-mode to try each of the active lsp sessions instead
+         ;; of prompting for which project to use
+         ;; see (lsp--try-open-in-library-workspace)
+         (concat (string-trim-right (shell-command-to-string "go env GOPATH")) "/pkg/mod"))))
+
+(provide 'gopls-config)
