@@ -15,6 +15,12 @@
   (package-install 'use-package))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Install and configure pacakges
+;;
+
+;; git client for Emacs
+(use-package magit
+  :ensure t
+  :bind (("C-c g" . magit-status)))
 
 ;; optional, provides snippets for method signature completion
 (use-package yasnippet
