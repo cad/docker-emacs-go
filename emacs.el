@@ -1,5 +1,7 @@
 (setenv "GOPATH" "/go")
 
+(menu-bar-mode -1)
+(electric-pair-mode t)
 ;enable melpa if it isn't enabled
 (require 'package)
 (setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3") 
@@ -83,7 +85,7 @@
   (setq lsp-clients-go-library-directories
         (list
          ;; /usr is the default value
-         "/workspace/Workspace"
+         ;"/workspace/Workspace"
          ;; add $GOPATH/pkg/mod to the "library path"
          ;; this causes lsp-mode to try each of the active lsp sessions instead
          ;; of prompting for which project to use

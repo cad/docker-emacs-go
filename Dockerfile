@@ -6,6 +6,8 @@ RUN apk update && apk add ca-certificates bash git emacs openssh-client
 
 RUN echo 'export PATH="$PATH:/go/bin"' >> /etc/profile
 
+VOLUME /go/pkg/mod
+
 # install go depencencies
 ENV GO111MODULE on
 RUN go get golang.org/x/tools/cmd/gopls@latest
