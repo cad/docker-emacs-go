@@ -2,6 +2,7 @@
 
 (menu-bar-mode -1)
 (electric-pair-mode t)
+(setq delete-selection-mode 1)
 ;enable melpa if it isn't enabled
 (require 'package)
 (setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3") 
@@ -19,10 +20,30 @@
 ;; Install and configure pacakges
 ;;
 
+(setq dired-dwim-target t)
+(use-package all-the-icons-dired
+  :after all-the-icons
+  :hook (dired-mode . all-the-icons-dired-mode))
+
+(use-package ido
+  :config
+  (setq ido-enable-flex-matching t)
+  (ido-everywhere t)
+  (ido-mode 1))
+
+(use-package doom-modeline
+  :ensure t
+  :hook (after-init . doom-modeline-init))
+
 ;; git client for Emacs
 (use-package magit
   :ensure t
   :bind (("C-c g" . magit-status)))
+
+(use-package undo-tree
+  :ensure t
+  :init
+  (global-undo-tree-mode))
 
 ;; optional, provides snippets for method signature completion
 (use-package yasnippet
@@ -41,8 +62,11 @@
   :config (progn
             ;; disable inline documentation
             (setq lsp-ui-sideline-enable nil)
-            ;; disable showing docs on hover at the top of the window
-            (setq lsp-ui-doc-enable nil))
+            ;; enable showing docs on hover at the top of the window
+            (setq lsp-ui-doc-enable t)
+	    ;; enable imenu
+	    (setq lsp-ui-imenu-enable t)
+	    (setq lsp-ui-flycheck-enable t))
   )
 
 (use-package company
@@ -57,6 +81,9 @@
             ;; align fields in completions
             (setq company-tooltip-align-annotations t)
             )
+  :bind (:map company-active-map
+	      ("C-n" . company-select-next)
+	      ("C-p" . company-select-previous))
   )
 
 ;; optional package to get the error squiggles as you edit
@@ -78,6 +105,8 @@
          )
   :hook ((go-mode . gopls-config/set-library-path)
          (go-mode . lsp-deferred)
+	 (go-mode . flycheck-mode)
+	 (go-mode . display-line-numbers-mode)
          (before-save . lsp-organize-imports)))
 
 (defun gopls-config/set-library-path ()
@@ -93,3 +122,6 @@
          (concat (string-trim-right (shell-command-to-string "go env GOPATH")) "/pkg/mod"))))
 
 (provide 'gopls-config)
+
+
+(global-prettify-symbols-mode +1)
