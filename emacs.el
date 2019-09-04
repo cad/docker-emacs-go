@@ -125,5 +125,7 @@
 
 (provide 'gopls-config)
 
+(use-package protobuf-mode
+  :ensure t)
 
 (global-prettify-symbols-mode +1)
