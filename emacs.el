@@ -81,9 +81,11 @@
             ;; align fields in completions
             (setq company-tooltip-align-annotations t)
             )
-  :bind (:map company-active-map
+  :bind (("C-c ;" . company-complete)
+	 (:map company-active-map
 	      ("C-n" . company-select-next)
-	      ("C-p" . company-select-previous))
+	      ("C-p" . company-select-previous)))
+	      
   )
 
 ;; optional package to get the error squiggles as you edit
