@@ -129,3 +129,4 @@
   :ensure t)
 
 (global-prettify-symbols-mode +1)
+(delete-selection-mode t)
