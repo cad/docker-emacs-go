@@ -9,6 +9,7 @@
 (when (not (assoc "melpa" package-archives))
   (setq package-archives (append '(("melpa" . "https://melpa.org/packages/")) package-archives)))
 (package-initialize)
+(package-refresh-contents)
 
 ;; refresh package list if it is not already available
 (when (not package-archive-contents) (package-refresh-contents))
@@ -89,7 +90,7 @@
   )
 
 ;; optional package to get the error squiggles as you edit
-(use-package flycheck
+(use-package flycheck-gometalinter
   :ensure t)
 
 ;; if you use company-mode for completion (otherwise, complete-at-point works out of the box):
@@ -111,17 +112,17 @@
 	 (go-mode . display-line-numbers-mode)
          (before-save . lsp-organize-imports)))
 
-(defun gopls-config/set-library-path ()
-  "Set lsp library directory for go modules"
-  (setq lsp-clients-go-library-directories
-        (list
-         ;; /usr is the default value
-         ;"/workspace/Workspace"
-         ;; add $GOPATH/pkg/mod to the "library path"
-         ;; this causes lsp-mode to try each of the active lsp sessions instead
-         ;; of prompting for which project to use
-         ;; see (lsp--try-open-in-library-workspace)
-         (concat (string-trim-right (shell-command-to-string "go env GOPATH")) "/pkg/mod"))))
+;(defun gopls-config/set-library-path ()
+;  "Set lsp library directory for go modules"
+;  (setq lsp-clients-go-library-directories
+;        (list
+;         ;; /usr is the default value
+;         ;"/workspace/Workspace"
+;         ;; add $GOPATH/pkg/mod to the "library path"
+;         ;; this causes lsp-mode to try each of the active lsp sessions instead
+;         ;; of prompting for which project to use
+;         ;; see (lsp--try-open-in-library-workspace)
+;         (concat (string-trim-right (shell-command-to-string "go env GOPATH")) "/pkg/mod"))))
 
 (provide 'gopls-config)
 
